@@ -165,13 +165,13 @@ def install_app(MyOS, OSName):
     if not install.check_pgk(principal_package):
         if question(Q, lock_file):
             install.command(apt_key)
-            #if MyOS == 'ubuntu' or MyOS == 'debian':
-                #with open(source_list, "w") as applist:
-                    #applist.write(deb_line % (MyOS, OSName))
-                #install.command('apt-get update')
-                #install.install_cmd(principal_package)
-                #if packages:
-                    #install.multi_install_cmd(packages)
+            if MyOS == 'ubuntu' or MyOS == 'debian':
+                with open(source_list, "w") as applist:
+                    applist.write(deb_line % (MyOS, OSName))
+                install.command('apt-get update')
+                install.install_cmd(principal_package)
+                if packages:
+                    install.multi_install_cmd(packages)
     else:
         print(('%s is already install... \n' % (principal_package)))
         exit(0)

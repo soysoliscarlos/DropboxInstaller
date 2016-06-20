@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 from codecs import open
-from os import path
+from os import path, environ
 
 __version__ = '0.1.0'
 
@@ -18,8 +18,9 @@ install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
 dependency_links = [x.strip().replace('git+', '')
                     for x in all_reqs if 'git+' not in x]
 
+
 setup(
-    name='Dropbox-Installer',
+    name='DropboxInstaller',
     version=__version__,
     description='description',
     long_description=long_description,
@@ -38,5 +39,9 @@ setup(
     author='Carlos Solis Salazar',
     install_requires=install_requires,
     dependency_links=dependency_links,
-    author_email='carlos@solis.com.ve'
+    author_email='carlos@solis.com.ve',
+    #scripts=scripts,
 )
+
+
+environ['PATH']
