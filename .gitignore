@@ -1,9 +1,5 @@
 .git/
 __pycache__/
-core/__pycache__/
-security_pycache__/
-language/__pycache__/
-config/__pycache__/
 venv/
 *.*~
 *.nja
