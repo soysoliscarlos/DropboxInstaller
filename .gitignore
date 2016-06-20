@@ -1,5 +1,6 @@
 .git/
 __pycache__/
+Dropbox-Intaller/__pycache__/
 venv/
 *.*~
 *.nja
