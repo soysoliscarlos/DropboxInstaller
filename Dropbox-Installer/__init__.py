@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import sys
 import subprocess
 import os
@@ -190,4 +190,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('\nExit by the user by pressing "Ctrl + c"...\n')
         del_file(lock_file)
-
