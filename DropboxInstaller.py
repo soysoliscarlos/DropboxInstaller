@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
 import subprocess
@@ -14,18 +15,17 @@ source_list = '/etc/apt/sources.list.d/dropbox.list'
 deb_line = 'deb http://linux.dropbox.com/%s/ %s main'
 principal_package = 'dropbox'
 packages = ()
-lock_file = '/var/run/install_dropbox.lock'
 
 
-def check_root():
+def check_root(MyOS, OSName):
     """Checking if the user has root privileges. If is True return True"""
     if os.getuid() == 0:
         print("User has root privileges...\n")
         return True  # Return if user is root
     else:
         print("I cannot run as a mortal... Sorry...")
-        print(('Run: sudo %s \n' % (sys.argv[0])))
-        sys.exit(1)  # Return if user is not root
+        print(('Run: sudo {} {} {}\n'.format(sys.argv[0],MyOS, OSName)))
+        exit(1)  # Return if user is not root
 
 
 def is_connected():
@@ -48,89 +48,45 @@ def is_connected():
         return False
 
 
-def lock_process(_lock_file):
-    try:
-        import psutil
-    except ImportError:
-        import pip
-        pip.main(['install', 'psutil'])
-        import psutil  # lint:ok
-    if os.path.isfile(_lock_file):
-        with open(_lock_file, "r") as lf:
-            pid = lf.read()
-            pid = int(pid)
-        if psutil.pid_exists(pid):
-            print('The process is already running...')
-            print('Wait until the process is complete or delete the file:')
-            print((('%s\n') % (_lock_file)))
-            sys.exit(0)
-            return True
-        else:
-            with open(_lock_file, "w") as lf:
-                lf.write(str(os.getpid()) + '\n')
-            return False
-    elif not os.path.isfile(_lock_file):
-        with open(_lock_file, "a") as lf:
-            lf.write(str(os.getpid()) + '\n')
-        return False
-
-
-def question(_Q, lock_file):
-    _count = False
-    while _count is False:
-        SELECT = input("%s (Y/n)('q' to exit):" % _Q)
-        if SELECT == "Y" or SELECT == "y" or SELECT == '':
-            return True
-        elif SELECT == "N" or SELECT == "n":
-            return False
-        elif SELECT == "Q" or SELECT == "q":
-            os.remove(lock_file)
-            sys.exit(0)
-        else:
-            print('')
-            print("You didn't choose a valid option. Select 'Y' or 'N'\n")
-            print('')
-
-
-def del_file(_file):
-    if os.path.isfile(_file):
-        os.remove(_file)
-    return
-
-
 def validingOSVersion(_ValidOsVersion, _MyOS, _OSVersion):
+    os = False
+    ver = False
     for _dict in _ValidOsVersion:
         for key, value in list(_dict.items()):
             if key == _MyOS:
+                os = True
                 for v in value:
+                    #print(v)
                     if v == _OSVersion:
-                        return True
-                    else:
-                        print(('"%s" is not a supported OS Version for this script...\n'
-                             % (_OSVersion)))
-            else:
-                print(('"%s" is not a supported OS for this script...\n' %
-                     (_MyOS)))
-            return False
+                        ver = True
+    if not os:
+        help_app(('"{}" is not a supported OS for this script...\n'.format(_MyOS)))
+    if not ver:
+        help_app(('"{}" is not a supported OS Version for this script...\n'.format(_OSVersion)))
+    return os and ver
+
 
 
 class Linux_Cmd():
 
-    def __init__(self, _MyOS, _OSName):
+    def __init__(self, _MyOS, _OSName,stdout=True):
         _sudo = ''
         _MyOS = _MyOS.lower()
         if _MyOS == 'ubuntu':
             _sudo = 'sudo'
         self._sudo = _sudo
         self._MyOS = _MyOS
+        self.stdout = stdout
 
-    def command(self, _cmd, stdout=True):
+    def command(self, _cmd):
         _cmd = _cmd.split()
         if self._MyOS == 'ubuntu':
             _cmd.insert(0, self._sudo)
-        if not stdout:
+        if self.stdout:
+            #print('command self.stdout')
             subprocess.check_call(_cmd)
         else:
+            #print('command else ')
             subprocess.check_call((_cmd), stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT)
 
@@ -146,7 +102,8 @@ class Linux_Cmd():
         if not self.check_pgk(_package):
             print(('Installing %s' % (_package)))
             if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
-                self.command('apt-get install -y %s' % (_package))
+                self.command('apt-get install -y --allow-unauthenticate %s'
+                            % (_package))
             print('OK...\n')
         else:
             print(('%s is already install' % (_package)))
@@ -159,34 +116,57 @@ class Linux_Cmd():
             self.install_cmd(_packages)
 
 
+def help_app(_message=False):
+    if _message:
+        print(('Error: {} \n'.format(_message)))
+    print('Usage:')
+    print(('    sudo {} OS OSName\n'.format(sys.argv[0])))
+
+    print('Examples:')
+    for _dict in ValidOSVersion:
+        for key, value in list(_dict.items()):
+            for v in value:
+                print(('    sudo python3 {} {} {}'.format(sys.argv[0], key, v)))
+    exit(1)
+
+
 def install_app(MyOS, OSName):
-    Q = 'Do you want install %s?' % (app_install)
     install = Linux_Cmd(MyOS, OSName)
-    if not install.check_pgk(principal_package):
-        if question(Q, lock_file):
-            install.command(apt_key)
-            if MyOS == 'ubuntu' or MyOS == 'debian':
-                with open(source_list, "w") as applist:
-                    applist.write(deb_line % (MyOS, OSName))
-                install.command('apt-get update')
-                install.install_cmd(principal_package)
-                if packages:
-                    install.multi_install_cmd(packages)
+    if MyOS == 'ubuntu' or MyOS == 'debian':
+        if not install.check_pgk(principal_package):
+            print('Adding key...\n')
+            try:
+                install.command(apt_key)
+            except subprocess.CalledProcessError:
+                print('\nError: Could not download the key... \n')
+                exit(1)
+            print('Adding Source List...\n')
+            with open(source_list, "w") as applist:
+                applist.write(deb_line % (MyOS, OSName))
+            print('Updating Source List...\n')
+            install.command('apt-get update')
+            print('Installing Packages...\n')
+            install.install_cmd(principal_package)
+            if packages:
+                install.multi_install_cmd(packages)
+            print('Start Dropbox from your session... \n')
     else:
-        print(('%s is already install... \n' % (principal_package)))
+        print(('{} is already install... \n'.format(principal_package)))
         exit(0)
 
 
 if __name__ == '__main__':
+    #print(sys.argv)
     try:
-        if sys.argv[1] and sys.argv[2]:
-            MyOS = sys.argv[1].lower()
-            OSName = sys.argv[2].lower()
-            if check_root():
-                if not lock_process(lock_file):
+        try:
+            if sys.argv[1] and sys.argv[2]:
+                MyOS = sys.argv[1].lower()
+                OSName = sys.argv[2].lower()
+                if check_root(MyOS, OSName):
                     if is_connected():
                         if validingOSVersion(ValidOSVersion, MyOS, OSName):
                             install_app(MyOS, OSName)
+        except IndexError:
+            help_app('You should indicate you OS and OS Name')
     except KeyboardInterrupt:
         print('\nExit by the user by pressing "Ctrl + c"...\n')
-        del_file(lock_file)
