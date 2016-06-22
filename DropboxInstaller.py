@@ -60,16 +60,17 @@ def validingOSVersion(_ValidOsVersion, _MyOS, _OSVersion):
                     if v == _OSVersion:
                         ver = True
     if not os:
-        help_app(('"{}" is not a supported OS for this script...\n'.format(_MyOS)))
+        help_app(
+            ('"{}" is not a supported OS for this script...\n'.format(_MyOS)))
     if not ver:
-        help_app(('"{}" is not a supported OS Version for this script...\n'.format(_OSVersion)))
+        help_app(
+('"{}" is not a supported OS Version for this script...\n'.format(_OSVersion)))
     return os and ver
-
 
 
 class Linux_Cmd():
 
-    def __init__(self, _MyOS, _OSName,stdout=True):
+    def __init__(self, _MyOS, _OSName, stdout=True):
         _sudo = ''
         _MyOS = _MyOS.lower()
         if _MyOS == 'ubuntu':
@@ -83,10 +84,8 @@ class Linux_Cmd():
         if self._MyOS == 'ubuntu':
             _cmd.insert(0, self._sudo)
         if self.stdout:
-            #print('command self.stdout')
             subprocess.check_call(_cmd)
         else:
-            #print('command else ')
             subprocess.check_call((_cmd), stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT)
 
@@ -120,7 +119,7 @@ def help_app(_message=False):
     if _message:
         print(('Error: {} \n'.format(_message)))
     print('Usage:')
-    print(('    sudo {} OS OSName\n'.format(sys.argv[0])))
+    print(('    sudo python3 {} OS OSName\n'.format(sys.argv[0])))
 
     print('Examples:')
     for _dict in ValidOSVersion:
@@ -132,31 +131,31 @@ def help_app(_message=False):
 
 def install_app(MyOS, OSName):
     install = Linux_Cmd(MyOS, OSName)
-    if MyOS == 'ubuntu' or MyOS == 'debian':
-        if not install.check_pgk(principal_package):
-            print('Adding key...\n')
-            try:
-                install.command(apt_key)
-            except subprocess.CalledProcessError:
-                print('\nError: Could not download the key... \n')
-                exit(1)
-            print('Adding Source List...\n')
-            with open(source_list, "w") as applist:
-                applist.write(deb_line % (MyOS, OSName))
-            print('Updating Source List...\n')
-            install.command('apt-get update')
+    if not install.check_pgk(principal_package):
+        print('Adding key...\n')
+        try:
+            install.command(apt_key)
+        except subprocess.CalledProcessError:
+            print('\nError: Could not download the key... \n')
+            exit(1)
+        finally:
+            if MyOS == 'ubuntu' or MyOS == 'debian':
+                print('Adding Source List...\n')
+                with open(source_list, "w") as applist:
+                    applist.write(deb_line % (MyOS, OSName))
+                print('Updating Source List...\n')
+                install.command('apt-get update')
             print('Installing Packages...\n')
             install.install_cmd(principal_package)
             if packages:
                 install.multi_install_cmd(packages)
-            print('Start Dropbox from your session... \n')
+                print('Start Dropbox from your session... \n')
     else:
         print(('{} is already install... \n'.format(principal_package)))
         exit(0)
 
 
 if __name__ == '__main__':
-    #print(sys.argv)
     try:
         try:
             if sys.argv[1] and sys.argv[2]:
