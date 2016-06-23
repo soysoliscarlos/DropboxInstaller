@@ -5,6 +5,7 @@ import subprocess
 import os
 import socket
 import apt
+import time
 
 ValidOSVersion = ({'ubuntu': ['hardy', 'intrepid', 'jaunty', 'karmic', 'lucid',
                  'maverick', 'natty', 'oneiric', 'precise', 'quantal', 'raring',
@@ -101,6 +102,7 @@ class Linux_Cmd():
         if self._MyOS == 'ubuntu':
             _cmd.insert(0, self._sudo)
         subprocess.Popen(_cmd)
+        time.sleep(10)
 
     def check_pgk(self, _package):
         if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
