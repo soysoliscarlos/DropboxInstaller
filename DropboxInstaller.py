@@ -100,14 +100,18 @@ class Linux_Cmd():
         _cmd = _cmd.split()
         if self._MyOS == 'ubuntu':
             _cmd.insert(0, self._sudo)
-        subprocess.Popen(_cmd)
+        subprocess.Popen(_cmd, shell=True)
 
     def check_pgk(self, _package):
         if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
-            if self.cache[_package].is_installed:
-                print(("{} is already installed...\n".format(_package)))
-                return True
-            else:
+            try:
+                if self.cache[_package].is_installed:
+                    print(("{} is already installed...\n".format(_package)))
+                    return True
+                else:
+                    print(("{} is not installed...\n".format(_package)))
+                    return False
+            except KeyError:
                 print(("{} is not installed...\n".format(_package)))
                 return False
 
