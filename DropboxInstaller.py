@@ -102,7 +102,7 @@ class Linux_Cmd():
         if self._MyOS == 'ubuntu':
             _cmd.insert(0, self._sudo)
         subprocess.Popen(_cmd)
-        time.sleep(10)
+        time.sleep(30)
 
     def check_pgk(self, _package):
         if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
