@@ -101,7 +101,8 @@ class Linux_Cmd():
         _cmd = _cmd.split()
         if self._MyOS == 'ubuntu':
             _cmd.insert(0, self._sudo)
-        subprocess.Popen(_cmd, shell=True)
+        subprocess.run(_cmd, shell=True, check=True)
+        #subprocess.Popen(_cmd, shell=True)
         time.sleep(30)
 
     def check_pgk(self, _package):
