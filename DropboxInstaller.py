@@ -4,6 +4,7 @@ import sys
 import subprocess
 import os
 import socket
+import apt
 
 ValidOSVersion = ({'ubuntu': ['hardy', 'intrepid', 'jaunty', 'karmic', 'lucid',
                  'maverick', 'natty', 'oneiric', 'precise', 'quantal', 'raring',
@@ -73,6 +74,12 @@ class Linux_Cmd():
     def __init__(self, _MyOS, _OSName, stdout=True):
         _sudo = ''
         _MyOS = _MyOS.lower()
+        if _MyOS == 'ubuntu' or _MyOS == 'debian':
+            cache = apt.Cache()
+            self.cache = cache
+            self.cache.update()
+            self.cache.commit(apt.progress.base.AcquireProgress(),
+                            apt.progress.base.InstallProgress())
         if _MyOS == 'ubuntu':
             _sudo = 'sudo'
         self._sudo = _sudo
@@ -89,23 +96,38 @@ class Linux_Cmd():
             subprocess.check_call((_cmd), stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT)
 
+    def apt_key(self, _cmd):
+        _cmd = _cmd.split()
+        if self._MyOS == 'ubuntu':
+            _cmd.insert(0, self._sudo)
+        subprocess.Popen(_cmd)
+
     def check_pgk(self, _package):
-        try:
-            if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
-                self.command('dpkg-query -s %s' % (_package))
+        if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
+            if self.cache[_package].is_installed:
+                print(("{} is already installed...\n".format(_package)))
                 return True
-        except subprocess.CalledProcessError:
-            return False
+            else:
+                print(("{} is not installed...\n".format(_package)))
+                return False
 
     def install_cmd(self, _package):
         if not self.check_pgk(_package):
-            print(('Installing %s' % (_package)))
             if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
-                self.command('apt-get install -y --allow-unauthenticate %s'
-                            % (_package))
-            print('OK...\n')
-        else:
-            print(('%s is already install' % (_package)))
+                print(('Installing %s' % (_package)))
+                pkg=self.cache[_package]
+                pkg.mark_install()
+                self.cache.commit(apt.progress.base.AcquireProgress(),
+                            apt.progress.base.InstallProgress())
+                print('OK...\n')
+        #if not self.check_pgk(_package):
+            #print(('Installing %s' % (_package)))
+            #if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
+                #self.command('apt-get install -y --allow-unauthenticate %s'
+                            #% (_package))
+            #print('OK...\n')
+        #else:
+            #print(('%s is already install' % (_package)))
 
     def multi_install_cmd(self, _packages):
         if type(_packages) is list or type(_packages) is tuple:
@@ -134,7 +156,7 @@ def install_app(MyOS, OSName):
     if not install.check_pgk(principal_package):
         print('Adding key...\n')
         try:
-            install.command(apt_key)
+            install.apt_key(apt_key)
         except subprocess.CalledProcessError:
             print('\nError: Could not download the key... \n')
             exit(1)
