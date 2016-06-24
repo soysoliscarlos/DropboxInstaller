@@ -58,15 +58,13 @@ def validingOSVersion(_ValidOsVersion, _MyOS, _OSVersion):
             if key == _MyOS:
                 os = True
                 for v in value:
-                    #print(v)
                     if v == _OSVersion:
                         ver = True
     if not os:
         help_app(
             ('"{}" is not a supported OS for this script...\n'.format(_MyOS)))
     if not ver:
-        help_app(
-('"{}" is not a supported OS Version for this script...\n'.format(_OSVersion)))
+        help_app(('"{}" is not a supported OS Version for this script...\n'.format(_OSVersion)))
     return os and ver
 
 
@@ -97,44 +95,36 @@ class Linux_Cmd():
             subprocess.check_call((_cmd), stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT)
 
-    def apt_key(self, _cmd):
-        _cmd = _cmd.split()
-        if self._MyOS == 'ubuntu':
-            _cmd.insert(0, self._sudo)
-        subprocess.run(_cmd, shell=True, check=True)
-        #subprocess.Popen(_cmd, shell=True)
-        time.sleep(30)
+    #def apt_key(self, _cmd):
+        #_cmd = _cmd.split()
+        #if self._MyOS == 'ubuntu':
+            #_cmd.insert(0, self._sudo)
+        #subprocess.run(_cmd, shell=True, check=True)
+        ##subprocess.Popen(_cmd, shell=True)
+        #time.sleep(30)
 
     def check_pgk(self, _package):
         if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
             try:
                 if self.cache[_package].is_installed:
-                    print(("{} is already installed...\n".format(_package)))
+                    print(('"{}" is already installed...\n'.format(_package)))
                     return True
                 else:
-                    print(("{} is not installed...\n".format(_package)))
+                    print(('"{}" is not installed...\n'.format(_package)))
                     return False
             except KeyError:
-                print(("{} is not installed...\n".format(_package)))
+                print(('"{}" is not installed...\n'.format(_package)))
                 return False
 
     def install_cmd(self, _package):
         if not self.check_pgk(_package):
             if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
-                print(('Installing %s' % (_package)))
-                pkg=self.cache[_package]
+                print(('Installing "%s"'.format(_package)))
+                pkg = self.cache[_package]
                 pkg.mark_install()
                 self.cache.commit(apt.progress.base.AcquireProgress(),
                             apt.progress.base.InstallProgress())
                 print('OK...\n')
-        #if not self.check_pgk(_package):
-            #print(('Installing %s' % (_package)))
-            #if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
-                #self.command('apt-get install -y --allow-unauthenticate %s'
-                            #% (_package))
-            #print('OK...\n')
-        #else:
-            #print(('%s is already install' % (_package)))
 
     def multi_install_cmd(self, _packages):
         if type(_packages) is list or type(_packages) is tuple:
@@ -163,7 +153,7 @@ def install_app(MyOS, OSName):
     if not install.check_pgk(principal_package):
         print('Adding key...\n')
         try:
-            install.apt_key(apt_key)
+            install.command(apt_key)
         except subprocess.CalledProcessError:
             print('\nError: Could not download the key... \n')
             exit(1)
@@ -179,9 +169,6 @@ def install_app(MyOS, OSName):
             if packages:
                 install.multi_install_cmd(packages)
                 print('Start Dropbox from your session... \n')
-    else:
-        print(('{} is already install... \n'.format(principal_package)))
-        exit(0)
 
 
 if __name__ == '__main__':
