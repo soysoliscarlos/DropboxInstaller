@@ -26,7 +26,7 @@ def check_root(MyOS, OSName):
         return True  # Return if user is root
     else:
         print("I cannot run as a mortal... Sorry...")
-        print(('Run: sudo {} {} {}\n'.format(sys.argv[0],MyOS, OSName)))
+        print(('Run: sudo {} {} {}\n'.format(sys.argv[0], MyOS, OSName)))
         exit(1)  # Return if user is not root
 
 
@@ -36,18 +36,28 @@ def is_connected():
         # see if we can resolve the host name -- tells us if there is
         # a DNS listening
         host = socket.gethostbyname(IS)
-        # connect to the host -- tells us if the host is actually
-        # reachable
         socket.create_connection((host, 80), 2)
-        #print(s)
-        #data = urllib.urlopen(IS)
-        #print(data)
         print('System has internet connection...\n')
         return True
     except:
         print('System has not internet connection.')
         print('Connect the system to internet...\n')
         return False
+
+
+def get_version():
+    'Read distro/codename from the lsb-release file.'
+    _id, codename = None, None
+    try:
+        with open('/etc/lsb-release') as f:
+            for line in f:
+                if line.startswith('DISTRIB_CODENAME'):
+                    _, _, codename = line.rstrip().partition('=')
+                elif line.startswith('DISTRIB_ID'):
+                    _, _, _id = line.rstrip().partition('=')
+    except IOError as err:
+        print(err.__class__.__name__, err)
+    return _id, codename
 
 
 def validingOSVersion(_ValidOsVersion, _MyOS, _OSVersion):
@@ -94,14 +104,6 @@ class Linux_Cmd():
         else:
             subprocess.check_call((_cmd), stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT)
-
-    #def apt_key(self, _cmd):
-        #_cmd = _cmd.split()
-        #if self._MyOS == 'ubuntu':
-            #_cmd.insert(0, self._sudo)
-        #subprocess.run(_cmd, shell=True, check=True)
-        ##subprocess.Popen(_cmd, shell=True)
-        #time.sleep(30)
 
     def check_pgk(self, _package):
         if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
@@ -169,14 +171,21 @@ def install_app(MyOS, OSName):
             if packages:
                 install.multi_install_cmd(packages)
                 print('Start Dropbox from your session... \n')
+                exit(0)
 
 
 if __name__ == '__main__':
     try:
         try:
-            if sys.argv[1] and sys.argv[2]:
-                MyOS = sys.argv[1].lower()
-                OSName = sys.argv[2].lower()
+            try:
+                _os = get_version()
+                MyOS = _os[0].lower()
+                OSName = _os[1].lower()
+            except:
+                if sys.argv[1] and sys.argv[2]:
+                    MyOS = sys.argv[1].lower()
+                    OSName = sys.argv[2].lower()
+            finally:
                 if check_root(MyOS, OSName):
                     if is_connected():
                         if validingOSVersion(ValidOSVersion, MyOS, OSName):
