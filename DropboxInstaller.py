@@ -106,14 +106,15 @@ class Linux_Cmd():
         if not self.check_pgk(_package):
             if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
                 print(('Installing "{}"'.format(_package)))
-                self.cache.update()
-                self.cache.commit(apt.progress.base.AcquireProgress(),
-                            apt.progress.base.InstallProgress())
-                pkg = self.cache[_package]
-                pkg.mark_install()
-                self.cache.commit(apt.progress.base.AcquireProgress(),
-                            apt.progress.base.InstallProgress())
-                print('OK...\n')
+                try:
+                    self.command('apt install -y {}'.format(_package))
+                except:
+                    try:
+                        self.command('aptitude install -y {}'.format(_package))
+                    except:
+                        self.command('apt-get install -y {}'.format(_package))
+                finally:
+                    print('OK...\n')
 
     def multi_install_cmd(self, _packages):
         if type(_packages) is list or type(_packages) is tuple:
