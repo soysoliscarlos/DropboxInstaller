@@ -106,6 +106,9 @@ class Linux_Cmd():
         if not self.check_pgk(_package):
             if self._MyOS == 'ubuntu' or self._MyOS == 'debian':
                 print(('Installing "{}"'.format(_package)))
+                self.cache.update()
+                self.cache.commit(apt.progress.base.AcquireProgress(),
+                            apt.progress.base.InstallProgress())
                 pkg = self.cache[_package]
                 pkg.mark_install()
                 self.cache.commit(apt.progress.base.AcquireProgress(),
@@ -139,9 +142,9 @@ def install_app(MyOS, OSName):
     if not install.check_pgk(principal_package):
         print('Adding key...\n')
         try:
-            for x in range(2):
-                print(x)
-                install.command(apt_key)
+            #for x in range(2):
+                #print(x)
+            install.command(apt_key)
         except subprocess.CalledProcessError:
             print('\nError: Could not download the key... \n')
             exit(1)
