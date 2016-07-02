@@ -6,6 +6,8 @@ import os
 import socket
 import apt
 
+__version__ = '1.0.0'
+
 ValidOSVersion = ({'ubuntu': ['hardy', 'intrepid', 'jaunty', 'karmic', 'lucid',
                  'maverick', 'natty', 'oneiric', 'precise', 'quantal', 'raring',
                  'saucy', 'trusty', 'utopic', 'vivid', 'wily', 'xenial']},
@@ -163,6 +165,7 @@ def install_app(MyOS, OSName):
 
 
 if __name__ == '__main__':
+    print(('Running Dropbox Installer\n    Version: {}'.format(__version__)))
     try:
         try:
             if sys.argv[1] and sys.argv[2]:
