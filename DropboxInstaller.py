@@ -139,7 +139,7 @@ def install_app(MyOS, OSName):
     if not install.check_pgk(principal_package):
         print('Adding key...\n')
         try:
-            for x in range(1):
+            for x in range(2):
                 print(x)
                 install.command(apt_key)
         except subprocess.CalledProcessError:
