@@ -17,7 +17,7 @@ As sudo user:
 Examples:
 ```sh
    ~$ sudo python3 DropboxInstaller.py debian jessie
-   ~$ sudo python3 DropboxInstaller.py ubunto xenial
+   ~$ sudo python3 DropboxInstaller.py ubuntu xenial
 ```
 And done.   
 
